@@ -53,7 +53,7 @@ Output: Markdown files containing the formatted content of the PDFs
 1. Clone the repository:
    ```
    git clone https://github.com/tirandagan/PDF_unstructured.git
-   cd unstructured-pdf-suite
+   cd PDF_unstructured
    ```
 
 2. Create a virtual environment (optional but recommended):
