@@ -26,13 +26,10 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 from PIL import Image
 import os
-from unstructured_client import UnstructuredClient
-from unstructured_client.models import shared
 import logging
 from typing import List
-from langchain.schema import Document
 import numpy as np
-from helpers.config import get_config, global_config
+from helpers.config import get_config
 from langchain_unstructured import UnstructuredLoader
 
 # Remove or comment out the existing logging setup

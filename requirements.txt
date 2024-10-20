@@ -3,7 +3,12 @@ configparser
 matplotlib
 pillow
 alive-progress
-fitz
 PyMuPDF
+unstructured-ingest
 unstructured_client
 numpy
+frontend
+inquirer
+tqdm
+openai
+tabulate
