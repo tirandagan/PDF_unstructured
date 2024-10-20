@@ -52,7 +52,7 @@ Output: Markdown files containing the formatted content of the PDFs
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/unstructured-pdf-suite.git
+   git clone https://github.com/tirandagan/PDF_unstructured.git
    cd unstructured-pdf-suite
    ```
 
