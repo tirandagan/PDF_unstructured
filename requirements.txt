@@ -1,0 +1,9 @@
+langchain_unstructured
+configparser
+matplotlib
+pillow
+alive-progress
+fitz
+PyMuPDF
+unstructured_client
+numpy

@@ -1,0 +1,28 @@
+[API_KEYS]
+UNSTRUCTURED_API_KEY = your_unstructured_api_key
+UNSTRUCTURED_URL = https://api.unstructuredapp.io    
+OPENAI_API_KEY = your_openai_api_key
+
+[DIRECTORIES]
+INPUT_DIR = ./data/input
+OUTPUT_DIR = ./data/output
+
+[MODEL]
+EMBEDDING_MODEL = meta-llama/Meta-Llama-3-8B-Instruct
+LLM_MODEL = gpt-4o
+
+[SUPABASE]
+TABLE_NAME = test_json
+SUPABASE_URL = your_supabase_url
+SUPABASE_KEY = your_supabase_key
+
+[PDF_PROCESSING]
+SAVE_BBOX_IMAGES = True
+SAVE_DOCUMENT_ELEMENTS = True
+LOGGING_LEVEL = WARNING
+SHOW_PROGRESSBAR = True
+
+[OpenAI]
+api_key = YOUR_API_KEY_HERE
+
+# Add other configuration settings as needed
