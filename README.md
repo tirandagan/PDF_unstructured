@@ -68,8 +68,8 @@ Output: Markdown files containing the formatted content of the PDFs
    ```
 
 4. Set up the `config.ini` file:
-   - Copy `config.ini.example` to `config.ini`
-   - Fill in the necessary API keys and directory paths
+   - Rename `config.ini.template` to `config.ini`
+   - Open `config.ini` and fill in the necessary API keys and directory paths
 
 ## Usage
 
@@ -120,7 +120,15 @@ The `config.ini` file contains important settings:
 - Input and output directory paths
 - Other processing options
 
-Ensure this file is properly configured before running the scripts.
+To set up your configuration:
+
+1. Locate the `config.ini.template` file in the project directory
+2. Rename `config.ini.template` to `config.ini`
+3. Open `config.ini` in a text editor
+4. Fill in your specific API keys, directory paths, and other settings
+5. Save the file
+
+Ensure this file is properly configured before running the scripts. The `config.ini` file is excluded from version control to protect sensitive information, so you'll need to set it up locally.
 
 ## License
 
