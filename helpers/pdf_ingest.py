@@ -56,6 +56,9 @@ def ingest_pdfs(input_dir, pdf_files):
             additional_partition_args={
                 "coordinates": True,
                 "extract_image_block_types": ["Image","Table"],
+                "split_pdf_page": True,
+                "split_pdf_allow_failed": True,
+                "split_pdf_concurrency_level": 15
             },
         ),
         chunker_config=chunker_config,

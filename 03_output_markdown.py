@@ -9,13 +9,9 @@ import pandas as pd
 from helpers.config import load_configuration, global_config
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-
 def select_json_file(directory): 
-
     # Create the output directory path relative to the script location
     json_dir = os.path.abspath(os.path.join(current_dir, directory))
-
-
     json_files = [f for f in os.listdir(json_dir) if f.endswith('.json')]
     if not json_files:
         print("No JSON files found in the output directory.")
@@ -29,7 +25,6 @@ def select_json_file(directory):
     ]
     answers = inquirer.prompt(questions)
     return os.path.join(directory, answers['file'])
-
 def convert_table_to_markdown(content):
     try:
         # Assuming the content is a string representation of a list of lists
@@ -38,7 +33,6 @@ def convert_table_to_markdown(content):
         return tabulate(df, headers='keys', tablefmt='pipe', showindex=False)
     except:
         return f"<Unable to parse table content: {content}>"
-
 def json_to_markdown(json_data):
     markdown_content = "\n"
     
@@ -49,51 +43,25 @@ def json_to_markdown(json_data):
         if category == 'Title':
             markdown_content += f"# {content}\n\n"
         elif category == 'NarrativeText':
-            # Add GitHub-style quote for important information
-            if "important" in content.lower():
-                markdown_content += f"> [!IMPORTANT]\n> {content}\n\n"
-            elif "note" in content.lower():
-                markdown_content += f"> [!NOTE]\n> {content}\n\n"
-            elif "warning" in content.lower():
-                markdown_content += f"> [!WARNING]\n> {content}\n\n"
-            else:
-                markdown_content += f"{content}\n\n"
+            markdown_content += f"{content}\n\n"
         elif category == 'ListItem':
-            # Convert to task list if it starts with "TODO" or "TASK"
-            if content.lower().startswith(("todo", "task")):
-                markdown_content += f"- [ ] {content}\n"
-            else:
-                markdown_content += f"- {content}\n"
+            markdown_content += f"- {content}\n"
         elif category == 'Table':
-            # Add a collapsible section for tables
-            markdown_content += "<details>\n<summary>Table</summary>\n\n"
-            markdown_content += item['metadata'].get('text_as_html', '') + "\n"
-            markdown_content += "</details>\n\n"
+            markdown_content +=  item['metadata'].get('text_as_html', '') + "\n\n"           
         elif category == 'Image':
             image_base64 = item['metadata']['image_base64']
             if image_base64:
-                # Use GitHub's theme-specific image display
+                # Determine the image format (assuming it's either PNG or JPEG)
                 image_format = 'png' if image_base64.startswith('/9j/') else 'jpeg'
                 summary = item['llm_summary']
-                markdown_content += f"<picture>\n"
-                markdown_content += f"  <source media=\"(prefers-color-scheme: dark)\" srcset=\"data:image/{image_format};base64,{image_base64}\">\n"
-                markdown_content += f"  <source media=\"(prefers-color-scheme: light)\" srcset=\"data:image/{image_format};base64,{image_base64}\">\n"
-                markdown_content += f"  <img alt=\"{summary}\" src=\"data:image/{image_format};base64,{image_base64}\">\n"
-                markdown_content += f"</picture>\n\n"
-                markdown_content += f"*{summary}*\n\n"
+                image_tag = f"![IMAGE:](data:image/{image_format};base64,{image_base64})"
+                markdown_content += f"| {image_tag}  |\n|:--:|\n| *{summary}* |\n\n"
             else:
-                markdown_content += f"> Image: **{content or '?Unknown'}**\n\n"
+                markdown_content += f"> Image: {content or '?Unknown'}\n\n"
         else:
-            # Wrap unknown content types in collapsible sections
-            markdown_content += f"<details>\n<summary>{category}</summary>\n\n{content}\n\n</details>\n\n"
-    
-    # Add a table of contents at the beginning
-    toc = "## Table of Contents\n\n"
-    for item in json_data:
-        if item.get('type') == 'Title':
-            toc += f"- [{item['text']}](#{item['text'].lower().replace(' ', '-')})\n"
-    
-    return toc + "\n---\n\n" + markdown_content
+            markdown_content += f"{content}\n\n"
+
+    return markdown_content
 
 def main():
     if not load_configuration():
