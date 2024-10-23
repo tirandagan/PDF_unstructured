@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pdf ingest workflow"
+name = "PDF ingest"
 version = "1.0.0"
 description = "Demonstrate the workflow to ingest PDF files, enrich images and create text markdowns"
 authors = ["Tiran Dagan <tiran@tirandagan.com>"]
