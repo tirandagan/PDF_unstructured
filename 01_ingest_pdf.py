@@ -20,14 +20,16 @@ Dependencies:
 - matplotlib
 - pillow
 - custom 'helpers' module
-- alive_progress
+
 
 Usage:
 Ensure all dependencies are installed and the config.ini file is properly set up with API keys.
 Run the script to process all PDF files in the specified input directory and optionally generate 
 annotated visualizations.
 
-Source: https://python.langchain.com/docs/how_to/document_loader_pdf/
+-----------------------------------------------------------------
+(C) 2024 Prof. Tiran Dagan, FDU University. All rights reserved.
+-----------------------------------------------------------------
 """
 
 import os

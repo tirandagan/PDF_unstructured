@@ -1,3 +1,30 @@
+"""
+-----------------------------------------------------------------
+(C) 2024 Prof. Tiran Dagan, FDU University. All rights reserved.
+-----------------------------------------------------------------
+
+Image Summarizer Script
+
+This script enriches a JSON file containing image data with AI-generated summaries.
+It uses OpenAI's GPT-4 Vision model to analyze and describe images based on their
+base64-encoded representations. The script allows users to select a JSON file,
+process its images, and save the enriched data back to the file.
+
+Key features:
+- Selects a JSON file from a specified output directory
+- Summarizes images using OpenAI's GPT-4 Vision model
+- Supports overriding existing summaries
+- Creates a backup of the original file before processing
+- Displays a progress bar during image summarization
+- Handles errors gracefully and preserves original data in case of failures
+
+Usage:
+python 02_image_summarizer.py [--override]
+
+Optional arguments:
+--override: Remove existing summaries and reprocess all images
+"""
+
 import json
 import os
 from helpers.config import load_configuration, global_config
@@ -10,6 +37,15 @@ import argparse
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 def select_json_file(directory):
+    """
+    Prompts the user to select a JSON file from the specified directory.
+
+    Args:
+        directory (str): The directory to search for JSON files.
+
+    Returns:
+        str: The full path of the selected JSON file, or None if no files are found.
+    """
     json_dir = os.path.abspath(directory)
     json_files = [f for f in os.listdir(json_dir) if f.endswith('.json')]
     
@@ -27,6 +63,15 @@ def select_json_file(directory):
     return os.path.join(directory, answers['file'])
 
 def summarize_image(image_base64):
+    """
+    Generates a summary of an image using OpenAI's GPT-4 Vision model.
+
+    Args:
+        image_base64 (str): Base64-encoded image data.
+
+    Returns:
+        str: A text summary of the image content.
+    """
     client = OpenAI(api_key=global_config['API_KEYS']['OPENAI_API_KEY'])
     
     prompt = """You are an image summarizing agent. I will be giving you an image and you will provide a summary describing 
@@ -58,6 +103,16 @@ def summarize_image(image_base64):
     return response.choices[0].message.content
 
 def enrich_json_with_summaries(json_file, json_data):
+    """
+    Processes the JSON data, generating summaries for images that don't have them.
+
+    Args:
+        json_file (str): Path to the JSON file being processed.
+        json_data (list): List of dictionaries containing image data.
+
+    Returns:
+        list: The enriched JSON data with added image summaries.
+    """
     # Count the number of unprocessed images
     total_images = sum(1 for item in json_data if item['type'] == 'Image' and 'llm_summary' not in item)
     
@@ -82,12 +137,25 @@ def enrich_json_with_summaries(json_file, json_data):
     return json_data
 
 def remove_existing_summaries(json_data):
+    """
+    Removes existing 'llm_summary' fields from the JSON data.
+
+    Args:
+        json_data (list): List of dictionaries containing image data.
+
+    Returns:
+        list: The JSON data with 'llm_summary' fields removed.
+    """
     for item in json_data:
         if 'llm_summary' in item:
             del item['llm_summary']
     return json_data
 
 def main():
+    """
+    Main function to run the image summarization process.
+    Handles command-line arguments, file selection, and error handling.
+    """
     parser = argparse.ArgumentParser(description="Enrich JSON file with image summaries")
     parser.add_argument("--override", action="store_true", help="Override existing summaries")
     args = parser.parse_args()
