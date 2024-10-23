@@ -45,31 +45,49 @@ Output: Markdown files containing the formatted content of the PDFs
 
 ## Prerequisites
 
-- Python 3.7 or higher
-- pip (Python package installer)
+- Python 3.11 or higher (but lower than 3.13)
+- Poetry (for package management and virtual environment)
 
 ## Installation
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/tirandagan/PDF_unstructured.git
-   cd PDF_unstructured
-   ```
+### 1. Install Poetry (if not already installed)
 
-2. Create a virtual environment (optional but recommended):
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-   ```
+If you don't have Poetry installed, follow these steps:
 
-3. Install the required packages:
-   ```
-   pip install -r requirements.txt
-   ```
+#### On macOS, Linux, or Windows (WSL):
 
-4. Set up the `config.ini` file:
-   - Rename `config.ini.template` to `config.ini`
-   - Open `config.ini` and fill in the necessary API keys and directory paths
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+#### On Windows (PowerShell):
+
+```powershell
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+```
+
+After installation, restart your terminal or run `source $HOME/.poetry/env` to add Poetry to your PATH.
+
+### 2. Clone the repository:
+
+```bash
+git clone https://github.com/tirandagan/PDF_unstructured.git
+cd PDF_unstructured
+```
+
+### 3. Set up the project:
+
+```bash
+# Install dependencies
+poetry install
+
+# Activate the virtual environment
+poetry shell
+```
+
+### 4. Set up the `config.ini` file:
+- Rename `config.ini.template` to `config.ini`
+- Open `config.ini` and fill in the necessary API keys and directory paths
 
 ## Usage
 

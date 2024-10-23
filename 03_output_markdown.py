@@ -49,25 +49,51 @@ def json_to_markdown(json_data):
         if category == 'Title':
             markdown_content += f"# {content}\n\n"
         elif category == 'NarrativeText':
-            markdown_content += f"{content}\n\n"
+            # Add GitHub-style quote for important information
+            if "important" in content.lower():
+                markdown_content += f"> [!IMPORTANT]\n> {content}\n\n"
+            elif "note" in content.lower():
+                markdown_content += f"> [!NOTE]\n> {content}\n\n"
+            elif "warning" in content.lower():
+                markdown_content += f"> [!WARNING]\n> {content}\n\n"
+            else:
+                markdown_content += f"{content}\n\n"
         elif category == 'ListItem':
-            markdown_content += f"- {content}\n"
+            # Convert to task list if it starts with "TODO" or "TASK"
+            if content.lower().startswith(("todo", "task")):
+                markdown_content += f"- [ ] {content}\n"
+            else:
+                markdown_content += f"- {content}\n"
         elif category == 'Table':
-            markdown_content +=  item['metadata'].get('text_as_html', '') + "\n\n"           
+            # Add a collapsible section for tables
+            markdown_content += "<details>\n<summary>Table</summary>\n\n"
+            markdown_content += item['metadata'].get('text_as_html', '') + "\n"
+            markdown_content += "</details>\n\n"
         elif category == 'Image':
             image_base64 = item['metadata']['image_base64']
             if image_base64:
-                # Determine the image format (assuming it's either PNG or JPEG)
+                # Use GitHub's theme-specific image display
                 image_format = 'png' if image_base64.startswith('/9j/') else 'jpeg'
                 summary = item['llm_summary']
-                image_tag = f"![IMAGE:](data:image/{image_format};base64,{image_base64})"
-                markdown_content += f"| {image_tag}  |\n|:--:|\n| *{summary}* |\n\n"
+                markdown_content += f"<picture>\n"
+                markdown_content += f"  <source media=\"(prefers-color-scheme: dark)\" srcset=\"data:image/{image_format};base64,{image_base64}\">\n"
+                markdown_content += f"  <source media=\"(prefers-color-scheme: light)\" srcset=\"data:image/{image_format};base64,{image_base64}\">\n"
+                markdown_content += f"  <img alt=\"{summary}\" src=\"data:image/{image_format};base64,{image_base64}\">\n"
+                markdown_content += f"</picture>\n\n"
+                markdown_content += f"*{summary}*\n\n"
             else:
-                markdown_content += f"> Image: {content or '?Unknown'}\n\n"
+                markdown_content += f"> Image: **{content or '?Unknown'}**\n\n"
         else:
-            markdown_content += f"{content}\n\n"
+            # Wrap unknown content types in collapsible sections
+            markdown_content += f"<details>\n<summary>{category}</summary>\n\n{content}\n\n</details>\n\n"
     
-    return markdown_content
+    # Add a table of contents at the beginning
+    toc = "## Table of Contents\n\n"
+    for item in json_data:
+        if item.get('type') == 'Title':
+            toc += f"- [{item['text']}](#{item['text'].lower().replace(' ', '-')})\n"
+    
+    return toc + "\n---\n\n" + markdown_content
 
 def main():
     if not load_configuration():

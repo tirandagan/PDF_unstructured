@@ -112,3 +112,4 @@ def load_configuration():
     except Exception as e:
         logging.error(f"Unexpected error during configuration: {e}")
         return None
+

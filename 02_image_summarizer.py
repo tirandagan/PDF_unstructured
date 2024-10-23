@@ -30,7 +30,8 @@ def summarize_image(image_base64):
     client = OpenAI(api_key=global_config['API_KEYS']['OPENAI_API_KEY'])
     
     prompt = """You are an image summarizing agent. I will be giving you an image and you will provide a summary describing 
-    the image, starting with "An image", or "An illustration", or "A diagram:", or "A logo:" or "A symbol:". If it contains part, you will try to identify the part and if it shows an action (such as a person cleaning 
+    the image, starting with "An image", or "An illustration", or "A diagram:", or "A logo:" or "A symbol:". If it contains part, 
+    you will try to identify the part and if it shows an action (such as a person cleaning 
     a pool or a woman holding a pool cleaning product) you will call those out. If it is a symbol, just give the symbol
     a meaningful name such as "warning symbol" or "attention!"
     """
