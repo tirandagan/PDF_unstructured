@@ -54,9 +54,19 @@ Output: Markdown files containing the formatted content of the PDFs
 
 If you don't have Poetry installed, follow these steps:
 
-#### On macOS, Linux, or Windows (WSL):
+#### On macOS or Windows (WSL):
 
 ```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+#### On Linux:
+
+```bash
+# Make sure you have python3-venv installed
+sudo apt-get install python3-venv
+
+# Install Poetry
 curl -sSL https://install.python-poetry.org | python3 -
 ```
 
