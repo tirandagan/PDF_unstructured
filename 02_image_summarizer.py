@@ -102,54 +102,7 @@ def summarize_image(image_base64):
     
     return response.choices[0].message.content
 
-def enrich_json_with_summaries(json_file, json_data):
-    """
-    Processes the JSON data, generating summaries for images that don't have them.
 
-    Args:
-        json_file (str): Path to the JSON file being processed.
-        json_data (list): List of dictionaries containing image data.
-
-    Returns:
-        list: The enriched JSON data with added image summaries.
-    """
-    # Count the number of unprocessed images
-    total_images = sum(1 for item in json_data if item['type'] == 'Image' and 'llm_summary' not in item)
-    
-    with tqdm(total=total_images, desc="Summarizing images") as pbar:
-        for item in json_data:
-            if item['type'] == 'Image' and 'llm_summary' not in item:
-                image_base64 = item['metadata'].get('image_base64')
-                if image_base64:
-                    try:
-                        summary = summarize_image(image_base64)
-                        item['llm_summary'] = summary
-                        pbar.update(1)
-                        
-                        # Save the file after each image is processed
-                        with open(json_file, 'w', encoding='utf-8') as f:
-                            json.dump(json_data, f, indent=2, ensure_ascii=False)
-                    except Exception as e:
-                        print(f"Error summarizing image: {str(e)}")
-                else:
-                    print(f"Skipping image without base64 data: {item.get('text', 'Unnamed image')}")
-    
-    return json_data
-
-def remove_existing_summaries(json_data):
-    """
-    Removes existing 'llm_summary' fields from the JSON data.
-
-    Args:
-        json_data (list): List of dictionaries containing image data.
-
-    Returns:
-        list: The JSON data with 'llm_summary' fields removed.
-    """
-    for item in json_data:
-        if 'llm_summary' in item:
-            del item['llm_summary']
-    return json_data
 
 def main():
     """

@@ -29,6 +29,7 @@ from typing import List
 import numpy as np
 from .config import global_config
 from .pdf_ingest import get_json_file_elements
+from .display import update_log_window
 
 def plot_pdf_with_boxes(pdf_page, documents, output_filename, output_dir):
     """
@@ -40,6 +41,9 @@ def plot_pdf_with_boxes(pdf_page, documents, output_filename, output_dir):
         output_filename (str): Name of the output file.
         output_dir (str): Directory to save the annotated image.
     """
+    logging.basicConfig(filename='pdf_converter.log', level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
     pix = pdf_page.get_pixmap()
     pil_image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
@@ -86,7 +90,7 @@ def plot_pdf_with_boxes(pdf_page, documents, output_filename, output_dir):
     fig.savefig(complete_image_path, format="jpg", dpi=300)  # High DPI for quality
     plt.close(fig)
 
-    logging.info(f"Annotated {boxes_drawn} boxes on page {pdf_page.number + 1}: saved as: {complete_image_path}")
+    logging.info(f"{boxes_drawn} annotations on page {pdf_page.number + 1} of: {base_filename}")
 
 def get_pdf_page_count(file_path):
     """
@@ -101,7 +105,7 @@ def get_pdf_page_count(file_path):
     with fitz.open(file_path) as pdf:
         return len(pdf)
 
-def process_pdf_pages(file_name: str, num_pages: int, progress_bar):
+def process_pdf_pages(stdcr, file_name: str, num_pages: int, progress_bar):
     """
     Process the pages of a PDF file, creating an annotated image for each page.
 
@@ -123,6 +127,10 @@ def process_pdf_pages(file_name: str, num_pages: int, progress_bar):
     for page_number in range(1, num_pages + 1):
         progress_bar.text(f"Analyzing {input_file_path}: page {page_number}/{num_pages}")
         progress_bar()
-        plot_pdf_with_boxes(pdf.load_page(page_number - 1), docs, input_file_path, output_dir)
         
+        # Filter documents for the current page
+        page_docs = [doc for doc in docs if doc['metadata'].get('page_number') == page_number]
+        
+        plot_pdf_with_boxes(pdf.load_page(page_number - 1), page_docs, input_file_path, output_dir)
+        update_log_window(stdcr)
     pdf.close()
