@@ -1,10 +1,22 @@
 """
+-----------------------------------------------------------------
+(C) 2024 Prof. Tiran Dagan, FDU University. All rights reserved.
+-----------------------------------------------------------------
+
 Helper functions for configuration and environment setup.
 
 This module provides utility functions for loading configuration,
 setting up a global config object, and handling API key prompts.
 
-Copyright © 2024 Prof. Tiran Dagan, FDU University. All rights reserved.
+Key features:
+- Load and save configuration settings
+- Manage global configuration state
+- Ensure necessary directories exist
+
+Usage:
+- Use `load_config()` to load configuration from a file.
+- Use `save_config()` to save the current configuration state.
+- Access configuration values via the `global_config` object.
 """
 
 import configparser
@@ -16,19 +28,46 @@ from types import SimpleNamespace
 
 # Add the GlobalConfig class
 class GlobalConfig:
+    """
+    A class to manage global configuration settings.
+    """
     def __init__(self):
         self.config = None
 
     def load(self, config_dict):
+        """
+        Load configuration from a dictionary.
+
+        Args:
+            config_dict (dict): Configuration data.
+        """
         self.config = json.loads(json.dumps(config_dict), object_hook=lambda d: SimpleNamespace(**d))
 
     def set(self, section, key, value):
+        """
+        Set a configuration value.
+
+        Args:
+            section (str): The section of the configuration.
+            key (str): The key within the section.
+            value: The value to set.
+        """
         try:
             setattr(getattr(self.config, section), key, value)
         except AttributeError:
             raise KeyError(f"Section '{section}' or key '{key}' not found in configuration.")
 
     def get(self, section, key):
+        """
+        Get a configuration value.
+
+        Args:
+            section (str): The section of the configuration.
+            key (str): The key within the section.
+
+        Returns:
+            The configuration value, or None if not found.
+        """
         try:
             return getattr(getattr(self.config, section), key)
         except AttributeError:
@@ -55,13 +94,26 @@ SAVE_DOCUMENT_ELEMENTS = True
 """
 
 def create_default_config(config_path):
-    """Create a default config.ini file."""
+    """
+    Create a default config.ini file.
+
+    Args:
+        config_path (str): Path to the configuration file.
+    """
     with open(config_path, 'w') as config_file:
         config_file.write(DEFAULT_CONFIG)
     logging.info(f"Created default config file at {config_path}")
 
 def load_config(config_path='config.ini'):
-    """Load configuration from config.ini file."""
+    """
+    Load configuration from config.ini file.
+
+    Args:
+        config_path (str): Path to the configuration file.
+
+    Returns:
+        GlobalConfig: The loaded global configuration.
+    """
     global global_config
     
     if not os.path.exists(config_path):
@@ -134,7 +186,9 @@ def load_config(config_path='config.ini'):
     return global_config
 
 def save_config():
-    """Save the global configuration back to config.ini."""
+    """
+    Save the global configuration back to config.ini.
+    """
     config = configparser.ConfigParser()
 
     # Convert the SimpleNamespace back to a dictionary
@@ -150,11 +204,18 @@ def save_config():
         config.write(configfile)
     logging.info("Configuration saved successfully to config.ini")
 
-#-------------------------------------------------
-# New get_config, used by pdf_to_jpg_converter.py
-#-------------------------------------------------
-
 def get_config(section, key, fallback=None):
+    """
+    Retrieve a configuration value with a fallback option.
+
+    Args:
+        section (str): The section of the configuration.
+        key (str): The key within the section.
+        fallback: The fallback value if the key is not found.
+
+    Returns:
+        The configuration value or the fallback.
+    """
     config = configparser.ConfigParser()
     config.read('config.ini')
     try:
@@ -162,12 +223,13 @@ def get_config(section, key, fallback=None):
     except KeyError:
         return fallback
 
-#-------------------------------------------------
-# Used by original 01_pdf_to_jpg_converter.py
-#-------------------------------------------------
-
 def load_configuration(): 
-    """Load and validate the configuration."""
+    """
+    Load and validate the configuration.
+
+    Returns:
+        GlobalConfig: The loaded global configuration, or None if an error occurs.
+    """
     try:
         config = load_config()
         logging.debug(f"Loaded config: {dict(config)}")
@@ -179,8 +241,13 @@ def load_configuration():
         logging.error(f"Unexpected error during configuration: {e}")
         return None
 
-# Add this at the end of the file
 def get_global_config():
+    """
+    Retrieve the global configuration object.
+
+    Returns:
+        GlobalConfig: The global configuration object.
+    """
     global global_config
     logging.debug(f"get_global_config called, returning: {global_config}")
     return global_config

@@ -1,24 +1,22 @@
 """
+-----------------------------------------------------------------
+(C) 2024 Prof. Tiran Dagan, FDU University. All rights reserved.
+-----------------------------------------------------------------
+
 PDF Annotation and Visualization Tool (Unstructured.io API version)
 
 This module provides functionality to annotate and visualize PDF pages with bounding boxes
 around different types of content (text, titles, images, tables) using the Unstructured.io API.
 It uses the PyMuPDF (fitz) library for PDF handling and Matplotlib for visualization.
 
-Copyright © 2024 Prof. Tiran Dagan, FDU University. All rights reserved.
-Source: https://python.langchain.com/docs/how_to/document_loader_pdf/
+Key features:
+- Annotate PDF pages with bounding boxes
+- Visualize content types with different colors
+- Save annotated pages as images
 
-Main components:
-1. plot_pdf_with_boxes: Renders a PDF page with annotated bounding boxes for different content types.
-2. render_page: Processes a specific page of a PDF, annotates it, and optionally prints the text content.
-3. process_pdf: Loads and processes an entire PDF document with progress tracking.
-
-Dependencies:
-- fitz (PyMuPDF)
-- matplotlib
-- Pillow (PIL)
-- unstructured_client (for Unstructured.io API)
-- langchain_unstructured
+Usage:
+- Use `plot_pdf_with_boxes()` to annotate and save a PDF page as an image.
+- Use `process_pdf_pages()` to process and annotate all pages in a PDF.
 """
 
 import fitz
@@ -32,20 +30,15 @@ import numpy as np
 from .config import global_config
 from .pdf_ingest import get_json_file_elements
 
-# Remove or comment out the existing logging setup
-#logging.basicConfig(level=logging.WARNING)
-#logger = logging.getLogger(__name__)
-
-
 def plot_pdf_with_boxes(pdf_page, documents, output_filename, output_dir):
     """
     Annotate a PDF page with bounding boxes for different content types and save as an image.
 
     Args:
-    pdf_page (fitz.Page): A PyMuPDF page object.
-    documents (List[Document]): List of Document objects from Langchain.
-    output_filename (str): Name of the output file.
-    output_dir (str): Directory to save the annotated image.
+        pdf_page (fitz.Page): A PyMuPDF page object.
+        documents (List[Document]): List of Document objects from Langchain.
+        output_filename (str): Name of the output file.
+        output_dir (str): Directory to save the annotated image.
     """
     pix = pdf_page.get_pixmap()
     pil_image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
@@ -82,7 +75,6 @@ def plot_pdf_with_boxes(pdf_page, documents, output_filename, output_dir):
         ax.add_patch(polygon)
         boxes_drawn += 1
     
-    
     legend_handles = [patches.Patch(color=color, label=category) for category, color in category_to_color.items()]
     ax.axis("off")
     ax.legend(handles=legend_handles, loc="upper right")
@@ -96,29 +88,33 @@ def plot_pdf_with_boxes(pdf_page, documents, output_filename, output_dir):
 
     logging.info(f"Annotated {boxes_drawn} boxes on page {pdf_page.number + 1}: saved as: {complete_image_path}")
 
-
 def get_pdf_page_count(file_path):
-    """Get the number of pages in a PDF file."""
+    """
+    Get the number of pages in a PDF file.
+
+    Args:
+        file_path (str): Path to the PDF file.
+
+    Returns:
+        int: The number of pages in the PDF.
+    """
     with fitz.open(file_path) as pdf:
         return len(pdf)
 
 def process_pdf_pages(file_name: str, num_pages: int, progress_bar):
-
     """
     Process the pages of a PDF file, creating an annotated image for each page.
 
     Args:
-    file_path (str): Path to the PDF file.
-    docs (List[Document]): List of Document objects from Langchain.
-    save_image (bool): If True, save the annotated image to a file. Defaults to False.
-    output_dir (str): Directory to save the annotated image.
-    
+        file_name (str): Name of the PDF file.
+        num_pages (int): Total number of pages in the PDF.
+        progress_bar: Function to update the progress bar.
     """
     output_dir = global_config.get('DIRECTORIES', 'output_dir')
     input_dir = global_config.get('DIRECTORIES', 'input_dir')
     
-    input_json_path = os.path.join(output_dir,file_name ) # fetch the json file elements for the document
-    input_file_path = os.path.join(input_dir,file_name)
+    input_json_path = os.path.join(output_dir, file_name)  # Fetch the JSON file elements for the document
+    input_file_path = os.path.join(input_dir, file_name)
     
     pdf = fitz.open(input_file_path)
     docs = get_json_file_elements(input_json_path)

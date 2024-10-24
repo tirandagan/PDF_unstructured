@@ -1,3 +1,23 @@
+"""
+-----------------------------------------------------------------
+(C) 2024 Prof. Tiran Dagan, FDU University. All rights reserved.
+-----------------------------------------------------------------
+
+Display and User Interaction Utilities
+
+This module provides functions for displaying configuration settings
+and handling user interactions in a terminal-based interface using curses.
+
+Key features:
+- Display and edit configuration settings
+- Validate directory paths
+- Handle user input for navigation and selection
+
+Usage:
+- Use `draw_windows()` to render the main interface.
+- Use `edit_config()` to allow users to edit configuration settings.
+"""
+
 import curses
 import os
 from .field_settings import FIELD_CONFIG
@@ -5,19 +25,62 @@ from .config import save_config, global_config
 import logging
 
 def get_friendly_name(key):
+    """
+    Retrieve the friendly name for a configuration key.
+
+    Args:
+        key (str): The configuration key.
+
+    Returns:
+        str: The friendly name.
+    """
     return FIELD_CONFIG[key]['friendly_name']
 
 def get_dropdown_options(key):
+    """
+    Retrieve dropdown options for a list-type configuration key.
+
+    Args:
+        key (str): The configuration key.
+
+    Returns:
+        list: The list of options.
+    """
     field_config = FIELD_CONFIG.get(key.upper(), {})
     return field_config.get('options', []) if field_config.get('type') == 'list' else []
 
 def is_boolean_field(key):
+    """
+    Check if a configuration key is of boolean type.
+
+    Args:
+        key (str): The configuration key.
+
+    Returns:
+        bool: True if the key is boolean, False otherwise.
+    """
     return FIELD_CONFIG.get(key.upper(), {}).get('type') == 'boolean'
 
 def is_valid_directory(path):
+    """
+    Validate if a path is a directory.
+
+    Args:
+        path (str): The path to validate.
+
+    Returns:
+        bool: True if the path is a directory, False otherwise.
+    """
     return os.path.isdir(path)
 
 def edit_config(stdscr, selected_index):
+    """
+    Edit a configuration setting based on user input.
+
+    Args:
+        stdscr: The curses screen object.
+        selected_index (int): The index of the selected configuration setting.
+    """
     all_settings = []
     for key, field_config in FIELD_CONFIG.items():
         section = field_config['section']
@@ -171,6 +234,13 @@ def edit_config(stdscr, selected_index):
     curses.curs_set(0)
     
 def display_config(win, selected_index):
+    """
+    Display the current configuration settings in a window.
+
+    Args:
+        win: The curses window object.
+        selected_index (int): The index of the selected configuration setting.
+    """
     logging.debug(f"display_config using global_config: {global_config}")
     
     win.clear()
@@ -211,6 +281,16 @@ def display_config(win, selected_index):
     win.refresh()
     
 def draw_windows(stdscr, selected_index, current_pdf=None, current_page=None, total_pages=None):
+    """
+    Draw the main interface windows for configuration, PDF list, progress, and logs.
+
+    Args:
+        stdscr: The curses screen object.
+        selected_index (int): The index of the selected configuration setting.
+        current_pdf (str): The current PDF being processed.
+        current_page (int): The current page number being processed.
+        total_pages (int): The total number of pages in the current PDF.
+    """
     logging.debug(f"draw_windows using global_config: {global_config}")
     height, width = stdscr.getmaxyx()
 

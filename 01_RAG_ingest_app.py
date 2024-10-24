@@ -1,3 +1,30 @@
+"""
+-----------------------------------------------------------------
+(C) 2024 Prof. Tiran Dagan, FDU University. All rights reserved.
+-----------------------------------------------------------------
+
+PDF Ingestion and Processing Application
+
+This script provides a terminal-based interface for processing PDF files.
+It allows users to configure settings, select PDF files from an input directory,
+and process them to extract annotations and optionally save bounding box images.
+
+Key features:
+- Terminal-based user interface using curses
+- Configurable input and output directories
+- Progress bar for PDF processing
+- Error handling and logging
+
+Usage:
+python 01_RAG_ingest_app.py
+
+Controls:
+- Arrow keys: Navigate settings
+- F2: Edit configuration
+- F10: Start PDF processing
+- F9: Exit the application
+"""
+
 import curses
 import logging
 import os
@@ -6,6 +33,10 @@ from helpers import *
 
 
 def setup_logging():
+    """
+    Sets up logging for the application. Clears the existing log file and
+    configures logging to write to 'pdf_converter.log'.
+    """
     # Clear the log file
     with open('pdf_converter.log', 'w') as log_file:
         pass
@@ -14,6 +45,14 @@ def setup_logging():
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
 def process_pdfs(stdscr, pdf_files):
+    """
+    Processes a list of PDF files, extracting annotations and optionally saving
+    bounding box images. Displays a progress bar for each PDF.
+
+    Args:
+        stdscr: The curses screen object.
+        pdf_files: List of PDF filenames to process.
+    """
     input_dir = global_config.get('DIRECTORIES', 'input_dir')
     output_dir = global_config.get('DIRECTORIES', 'output_dir')
     save_bbox_images = global_config.get('PDF_PROCESSING', 'save_bbox_images')
@@ -49,7 +88,6 @@ def process_pdfs(stdscr, pdf_files):
         except Exception as e:
             logging.error(f"Error processing {pdf_file}: {str(e)}")
     
-    
     # After processing all PDFs, wait for user input
     stdscr.addstr(curses.LINES - 2, 2, "PDF processing complete. Press any key to continue.", curses.color_pair(3))
     stdscr.refresh()
@@ -57,7 +95,11 @@ def process_pdfs(stdscr, pdf_files):
 
 
 def main(stdscr):
-        
+    """
+    Main function to run the PDF processing application. Initializes the curses
+    interface, loads configuration, and handles user input for navigating and
+    processing PDFs.
+    """
     curses.curs_set(0)
     stdscr.clear()
     stdscr.refresh()
