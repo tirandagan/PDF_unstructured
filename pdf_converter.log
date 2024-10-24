@@ -1,0 +1,3 @@
+2024-10-24 16:55:31,252 - INFO - Ensured input directory exists: ./data/input
+2024-10-24 16:55:31,252 - INFO - Ensured output directory exists: ./data/output
+2024-10-24 16:55:31,252 - INFO - Configuration loaded successfully

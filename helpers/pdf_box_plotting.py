@@ -29,12 +29,12 @@ import os
 import logging
 from typing import List
 import numpy as np
-from helpers.config import get_config
-from langchain_unstructured import UnstructuredLoader
+from .config import global_config
+from .pdf_ingest import get_json_file_elements
 
 # Remove or comment out the existing logging setup
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger(__name__)
+#logging.basicConfig(level=logging.WARNING)
+#logger = logging.getLogger(__name__)
 
 
 def plot_pdf_with_boxes(pdf_page, documents, output_filename, output_dir):
@@ -96,65 +96,37 @@ def plot_pdf_with_boxes(pdf_page, documents, output_filename, output_dir):
 
     logging.info(f"Annotated {boxes_drawn} boxes on page {pdf_page.number + 1}: saved as: {complete_image_path}")
 
-def process_page(file_path, docs, page_number, save_image=False, output_dir=None):
-    """
-    Process a specific page of a PDF file, analyze it, and optionally save an annotated image.
-
-    Args:
-    file_path (str): Path to the PDF file.
-    docs (List[Document]): List of Document objects from Langchain.
-    page_number (int): The page number to process (1-indexed).
-    save_image (bool): If True, save the annotated image to a file. Defaults to False.
-    output_dir (str): Directory to save the annotated image.
-    """
-    pdf = fitz.open(file_path)
-    pdf_page = pdf.load_page(page_number - 1)
-    
-    # Filter documents for the current page
-    page_docs = [doc for doc in docs if doc.metadata.get('page_number') == page_number]
-    
-    # Analyze the page content (you can add more analysis here if needed)
-    for doc in page_docs:
-        category = doc.metadata.get('category', 'Unknown')
-        content_preview = doc.page_content[:50] + "..." if len(doc.page_content) > 50 else doc.page_content
-        logging.debug(f"Page {page_number}, {category}: {content_preview}")
-
-    if save_image:
-        plot_pdf_with_boxes(pdf_page, page_docs, file_path, output_dir)
-
-    pdf.close()
-
-def process_pdf(file_path: str, num_pages: int, save_images: bool, output_dir: str, progress_bar):
-    """Load, process, and analyze a PDF document with progress tracking."""
-    file_name = os.path.basename(file_path)
-    
-    # Pre-Processing phase
-    progress_bar.text(f"Pre-Processing: {file_name}")
-    loader = UnstructuredLoader(
-        file_path=file_path,
-        strategy="hi_res",
-        partition_via_api=True,
-        coordinates=True,
-        api_key=get_config('API_KEYS', 'UNSTRUCTURED_API_KEY')
-    )
-    docs = loader.load()
-    
-    logging.info(f"Number of documents in {file_name}: {len(docs)}")
-    logging.info(f"Number of pages in {file_name}: {num_pages}")
-
-    # Analyzing Pages phase
-    progress_bar.text(f"Analyzing Pages: {file_name}")
-    for page_number in range(1, num_pages + 1):
-        progress_bar.text(f"Analyzing {file_name}: page {page_number}/{num_pages}")
-        process_page(file_path, docs, page_number, save_image=save_images, output_dir=output_dir)
-        progress_bar()
-
-    return docs
 
 def get_pdf_page_count(file_path):
     """Get the number of pages in a PDF file."""
     with fitz.open(file_path) as pdf:
         return len(pdf)
 
-# Add this line at the end of the file
-__all__ = ['plot_pdf_with_boxes', 'process_pdf', 'get_pdf_page_count']
+def process_pdf_pages(file_name: str, num_pages: int, progress_bar):
+
+    """
+    Process the pages of a PDF file, creating an annotated image for each page.
+
+    Args:
+    file_path (str): Path to the PDF file.
+    docs (List[Document]): List of Document objects from Langchain.
+    save_image (bool): If True, save the annotated image to a file. Defaults to False.
+    output_dir (str): Directory to save the annotated image.
+    
+    """
+    output_dir = global_config.get('DIRECTORIES', 'output_dir')
+    input_dir = global_config.get('DIRECTORIES', 'input_dir')
+    
+    input_json_path = os.path.join(output_dir,file_name ) # fetch the json file elements for the document
+    input_file_path = os.path.join(input_dir,file_name)
+    
+    pdf = fitz.open(input_file_path)
+    docs = get_json_file_elements(input_json_path)
+    
+    progress_bar.text(f"Analyzing Pages: {file_name}")
+    for page_number in range(1, num_pages + 1):
+        progress_bar.text(f"Analyzing {input_file_path}: page {page_number}/{num_pages}")
+        progress_bar()
+        plot_pdf_with_boxes(pdf.load_page(page_number - 1), docs, input_file_path, output_dir)
+        
+    pdf.close()

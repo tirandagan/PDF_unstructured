@@ -11,9 +11,34 @@ import configparser
 import logging
 import os
 import sys
+import json
+from types import SimpleNamespace
 
-# Global config object
-global_config = configparser.ConfigParser()
+# Add the GlobalConfig class
+class GlobalConfig:
+    def __init__(self):
+        self.config = None
+
+    def load(self, config_dict):
+        self.config = json.loads(json.dumps(config_dict), object_hook=lambda d: SimpleNamespace(**d))
+
+    def set(self, section, key, value):
+        try:
+            setattr(getattr(self.config, section), key, value)
+        except AttributeError:
+            raise KeyError(f"Section '{section}' or key '{key}' not found in configuration.")
+
+    def get(self, section, key):
+        try:
+            return getattr(getattr(self.config, section), key)
+        except AttributeError:
+            return None
+
+    def __str__(self):
+        return str(self.config.__dict__)
+
+# Create an instance of GlobalConfig
+global_config = GlobalConfig()
 
 DEFAULT_CONFIG = """
 [API_KEYS]
@@ -45,25 +70,29 @@ def load_config(config_path='config.ini'):
         print(f"A default configuration file has been created at {config_path}")
         print("Please edit this file to add your API keys before running the program again.")
         sys.exit(1)
+    config = configparser.ConfigParser()
+    config.read(config_path)
     
-    global_config.read(config_path)
-    
+    # Read the configuration file
+    config.read('config.ini')
+
     # Check for critical parameters
     critical_params = [
-        ('API_KEYS', 'UNSTRUCTURED_API_KEY'),
-        ('API_KEYS', 'OPENAI_API_KEY'),
-        ('DIRECTORIES', 'INPUT_DIR'),
-        ('DIRECTORIES', 'OUTPUT_DIR')
+        ('API_KEYS', 'unstructured_api_key','your_unstructured_api_key_here'),
+        ('API_KEYS', 'openai_api_key','your_openai_api_key_here'),
+        ('DIRECTORIES', 'input_dir','./input'),
+        ('DIRECTORIES', 'output_dir','./output')
     ]
     
     missing_params = []
     default_params = []
     
-    for section, key in critical_params:
-        if not global_config.has_option(section, key) or not global_config.get(section, key):
+    for section, key, default_value in critical_params:
+        if not config.has_section(section):
+            config.add_section(section)
+        if not config.has_option(section, key):
+            config.set(section, key, default_value)
             missing_params.append(f"{section}.{key}")
-        elif global_config.get(section, key) in ['your_unstructured_api_key_here', 'your_openai_api_key_here']:
-            default_params.append(f"{section}.{key}")
     
     if missing_params:
         print(f"Critical parameter(s) missing in config.ini: {', '.join(missing_params)}")
@@ -75,9 +104,17 @@ def load_config(config_path='config.ini'):
         print("Please update these values in your config.ini file before running the program.")
         sys.exit(1)
     
+    # Convert the configuration to a dictionary
+    config_dict = {section: dict(config.items(section)) for section in config.sections()}
+
+    # Load the config into the GlobalConfig instance
+    global_config.load(config_dict)
+    
+    logging.debug(f"global_config set in load_config: {global_config}")
+    
     # Ensure directories exist
-    input_dir = global_config.get("DIRECTORIES", "INPUT_DIR")
-    output_dir = global_config.get("DIRECTORIES", "OUTPUT_DIR")
+    input_dir = global_config.get('DIRECTORIES', 'input_dir')
+    output_dir = global_config.get('DIRECTORIES', 'output_dir')
     
     if input_dir:
         os.makedirs(input_dir, exist_ok=True)
@@ -89,18 +126,47 @@ def load_config(config_path='config.ini'):
         os.makedirs(output_dir, exist_ok=True)
         logging.info(f"Ensured output directory exists: {output_dir}")
     else:
-        logging.error("OUTPUT_DIR not found in configuration")
+        logging.error("OUTPUT_DIR not found in configuration")    
     
     logging.info("Configuration loaded successfully")
-    logging.debug(f"Global config contents: {dict(global_config)}")
+    logging.debug(f"Global config contents: {global_config}")
 
     return global_config
 
-def get_config(section, key):
-    """Get a specific configuration value."""
-    return global_config.get(section, key, fallback=None)
+def save_config():
+    """Save the global configuration back to config.ini."""
+    config = configparser.ConfigParser()
 
-def load_configuration():
+    # Convert the SimpleNamespace back to a dictionary
+    config_dict = json.loads(json.dumps(global_config.config, default=lambda o: o.__dict__))
+
+    for section, params in config_dict.items():
+        if not config.has_section(section):
+            config.add_section(section)
+        for key, value in params.items():
+            config.set(section, key, str(value))
+
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
+    logging.info("Configuration saved successfully to config.ini")
+
+#-------------------------------------------------
+# New get_config, used by pdf_to_jpg_converter.py
+#-------------------------------------------------
+
+def get_config(section, key, fallback=None):
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    try:
+        return config[section][key]
+    except KeyError:
+        return fallback
+
+#-------------------------------------------------
+# Used by original 01_pdf_to_jpg_converter.py
+#-------------------------------------------------
+
+def load_configuration(): 
     """Load and validate the configuration."""
     try:
         config = load_config()
@@ -113,3 +179,8 @@ def load_configuration():
         logging.error(f"Unexpected error during configuration: {e}")
         return None
 
+# Add this at the end of the file
+def get_global_config():
+    global global_config
+    logging.debug(f"get_global_config called, returning: {global_config}")
+    return global_config

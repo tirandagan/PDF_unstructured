@@ -2,7 +2,7 @@ import logging
 import os
 import pymupdf as fitz
 import json
-from .pdf_box_plotting import plot_pdf_with_boxes
+
 from unstructured_ingest.v2.pipeline.pipeline import Pipeline
 from unstructured_ingest.v2.interfaces import ProcessorConfig
 from unstructured_ingest.v2.processes.partitioner import PartitionerConfig
@@ -12,10 +12,18 @@ from unstructured_ingest.v2.processes.chunker import ChunkerConfig
 from unstructured_ingest.v2.processes.embedder import EmbedderConfig
 from .config import get_config
 
-logging.basicConfig(level=logging.WARNING)
+
 
 def ingest_pdfs(input_dir, pdf_files):
-    show_progressbar = get_config('PDF_PROCESSING', 'SHOW_PROGRESSBAR').lower() == 'true'
+    unstructured_logger = logging.getLogger('unstructured_ingest.v2')
+    current_handler = unstructured_logger.handlers[0]
+    current_handler.setLevel(logging.CRITICAL)
+  #  new_handler = logging.FileHandler('pdf_converter.log')
+  #  new_handler.setLevel(logging.WARNING)
+  #  unstructured_logger.addHandler(new_handler)
+
+    
+    show_progressbar = get_config('PDF_PROCESSING', 'SHOW_PROGRESSBAR', fallback='False').lower() == 'true'
     output_dir = os.path.realpath(get_config('DIRECTORIES', 'OUTPUT_DIR'))
     unstructured_api_key = get_config('API_KEYS', 'UNSTRUCTURED_API_KEY')
     unstructured_url = get_config('API_KEYS', "UNSTRUCTURED_URL")
@@ -65,7 +73,7 @@ def ingest_pdfs(input_dir, pdf_files):
         embedder_config=embedder_config,
         uploader_config=LocalUploaderConfig(output_dir=output_dir)
     ).run()
-
+    
 def get_pdf_files(directory):
     """Get all PDF files in the specified directory."""
     return [f for f in os.listdir(directory) if f.lower().endswith('.pdf')]
@@ -76,17 +84,3 @@ def get_json_file_elements(pdf_filename):
     with open(file_path, 'r') as file:
         return json.load(file)
     
-def create_bbox_images(input_dir, pdf_files):
-    output_dir = get_config('DIRECTORIES', 'OUTPUT_DIR')
-
-    for each_file in pdf_files:
-        pdf = fitz.open(os.path.join(input_dir,each_file)) # open the pdf file
-        num_pages = len(pdf)
-
-        docs = get_json_file_elements(os.path.join(output_dir,each_file)) # fetch the json file elements for the document
-        for page_number in range(1, num_pages + 1):
-            pdf_page = pdf.load_page(page_number - 1)
-            page_docs = [doc for doc in docs if doc['metadata']['page_number'] == page_number]
-            plot_pdf_with_boxes(pdf_page, page_docs, each_file, output_dir)
-
-        pdf.close()
